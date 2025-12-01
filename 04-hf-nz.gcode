@@ -300,14 +300,14 @@ G0 X18 E15 F{outer_wall_volumetric_speed/(0.3*0.5)     * 60}
 
 ;CUSTOM CODE, end of print prep, retract and flick to wipe nozzle
 G1 E-1.5 F3000 ; Retract 1.5mm INSTANTLY to kill pressure
-G0 X0 F18000   ; fast "Flick" to the left edge to wipe the nozzle tip
 M400
 
 
 ;===== for Textured PEI Plate , lower the nozzle as the nozzle was touching topmost of the texture when homing ==
 ;curr_bed_type={curr_bed_type}
 {if curr_bed_type=="Textured PEI Plate"}
-G29.1 Z{-0.07} ; for Textured PEI Plate
+;CUSTOM CODE, used to be Z{-0.04}
+G29.1 Z{-0.06} ; for Textured PEI Plate
 {endif}
 ;========turn off light and wait extrude temperature =============
 M1002 gcode_claim_action : 0
