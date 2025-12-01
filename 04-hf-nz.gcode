@@ -102,7 +102,7 @@ G1 X65 Y230 F18000
 G1 Y264 F6000
 
 ;CUSTOM CODE
-M109 S140; Wait for 140 NOW, right before touching the bed
+M109 S140; Wait for 140 c before doing last wipe to zero the plate
 ;CUSTOM CODE, commented out original line
 ; M109 S{nozzle_temperature_initial_layer[initial_extruder]-20}
 
