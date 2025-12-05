@@ -101,7 +101,16 @@ M106 S255
 G1 X65 Y230 F18000
 G1 Y264 F6000
 
-M109 S{nozzle_temperature_initial_layer[initial_extruder]-20}
+;CUSTOM CODE, gravity drain ooze before wipe mouth
+M109 S250 ; Ensure nozzle is hot and fully liquid
+G4 S15     ; Wait to let gravity drain the ooze
+G1 E-2 F1800 ; Retract 2mm to "cut" the string inside the nozzle
+
+;CUSTOM CODE
+M109 S190 ; Wait for plastic "rubbery" state (Good for wiping)
+
+;CUSTOM CODE, commented out original line
+; M109 S{nozzle_temperature_initial_layer[initial_extruder]-20}
 
 G1 X100 F18000 ; first wipe mouth
 
@@ -270,9 +279,16 @@ G90
 M83
 T1000
 
-G1 X18.0 Y1.0 Z0.8 F18000;Move to start position
+;CUSTOM CODE, commented out original line 
+;G1 X18.0 Y1.0 Z0.8 F18000;Move to start position
+
+;CUSTOM CODE, Go straight to 0.2mm height. The bed blocks the ooze from curling up.
+G1 X18.0 Y1.0 Z0.2 F18000 ; Move to start position at LOW height
+
 M109 S{nozzle_temperature_initial_layer[initial_extruder]}
-G1 Z0.2
+
+;CUSTOM CODE, commented out original line, already set Z0.2 above 
+;G1 Z0.2
 
 G0 E2 F300
 G0 X240 E15 F{outer_wall_volumetric_speed/(0.3*0.5)     * 60}
@@ -282,14 +298,16 @@ G0 E0.2
 G0 Y1.5 E0.700
 G0 X18 E15 F{outer_wall_volumetric_speed/(0.3*0.5)     * 60}
 
+;CUSTOM CODE, end of print prep, retract and flick to wipe nozzle
+G1 E-1.5 F3000 ; Retract 1.5mm INSTANTLY to kill pressure
+M400
+
 
 ;===== for Textured PEI Plate , lower the nozzle as the nozzle was touching topmost of the texture when homing ==
 ;curr_bed_type={curr_bed_type}
 {if curr_bed_type=="Textured PEI Plate"}
-
 ;CUSTOM CODE, used to be Z{-0.04}
 G29.1 Z{-0.06} ; for Textured PEI Plate
-
 {endif}
 ;========turn off light and wait extrude temperature =============
 M1002 gcode_claim_action : 0
