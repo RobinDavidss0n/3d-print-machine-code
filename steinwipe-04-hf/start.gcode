@@ -277,7 +277,10 @@ M400
 ;===== for Textured PEI Plate , lower the nozzle as the nozzle was touching topmost of the texture when homing ==
 ;curr_bed_type={curr_bed_type}
 {if curr_bed_type=="Textured PEI Plate"}
-G29.1 Z{-0.04} ; for Textured PEI Plate
+
+;CUSTOM CODE, used to be Z{-0.04}
+G29.1 Z{-0.06} ; for Textured PEI Plate
+
 {endif}
 ;========turn off light and wait extrude temperature =============
 M1002 gcode_claim_action : 0
