@@ -279,7 +279,7 @@ M400
 {if curr_bed_type=="Textured PEI Plate"}
 
 ;CUSTOM CODE, used to be Z{-0.04}
-G29.1 Z{-0.06} ; for Textured PEI Plate
+G29.1 Z{-0.07} ; for Textured PEI Plate
 
 {endif}
 ;========turn off light and wait extrude temperature =============
