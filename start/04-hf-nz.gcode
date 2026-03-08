@@ -2,7 +2,7 @@
 ;===== date: 20231107 =====================
 ;===== turn on the HB fan & MC board fan =================
 M104 S75 ;set extruder temp to turn on the HB fan and prevent filament oozing from nozzle
-M710 A1 S255 ; turn on MC fan by default(P1S)
+M710 A1 S255 ;turn on MC fan by default(P1S)
 ;===== reset machine status =================
 M290 X40 Y40 Z2.6666666
 G91
@@ -26,6 +26,7 @@ M204 S10000 ; init ACC set to 10m/s^2
 M1002 gcode_claim_action : 2
 M140 S[bed_temperature_initial_layer_single] ;set bed temp
 M190 S[bed_temperature_initial_layer_single] ;wait for bed temp
+
 
 
 ;=============turn on fans to prevent PLA jamming=================
@@ -165,35 +166,30 @@ G2 I0.5 J0 F300
 G2 I0.5 J0 F300
 G2 I0.5 J0 F300
 
+{if printer_notes =~ /.*^(steinwipe_before_abl)$.*/}
+G0 Z2
+M400
+M106 S0
+;___________ run wipe cycle ________________
+{template_custom_gcode}
+{template_custom_gcode}
+G0 X130 Y261
+G0 Z-1.01
+M204 S10000
+M106 S255
 M109 S140 ; wait nozzle temp down to heatbed acceptable
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
-
-;CUSTOM CODE, added scrubbler nozzle wipe sequence
-;===== Scrubbler nozzle wipe start ABL_5/20/24 ==================
-
-G90 ; ensure absolute mode (should already be in it, but here for safety)
-G1 Z10 F1200 ; Make sure we don't hit the bed during wiping passes
-G1 X128 Y265 F30000; start position, should be very close to where steel plate rub seq. ended
-G91 ; relative mode
-G1 X-45 F30000  ; run snake pattern from top back to front, run at max acceleration.
-G1 Y-0.5 ; increment y slightly , and repeat back/forth while incrementing y.
-G1 X45  
-G1 Y-0.5
-G1 X-45 
-G1 Y-0.5
-G1 X45
-G1 Y-0.5
-G1 X-45 
-G1 Y-0.5
-G1 X45  
-G90 ; restore to absolute mode
-G1 X128 Y265 ; return to start position.
-G1 F3000 ; restore previous acceleration
-
-;===== Scrubbler nozzle wipe end ================================
+M106 P1 S0
+{else}
+M109 S140 ; wait nozzle temp down to heatbed acceptable
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+{endif}
 
 M221 R; pop softend status
 G1 Z10 F1200
@@ -234,19 +230,14 @@ M975 S1 ; turn on vibration supression
 
 ;=============turn on fans to prevent PLA jamming=================
 {if filament_type[initial_extruder]=="PLA"}
-    {if (bed_temperature[initial_extruder] >50)||(bed_temperature_initial_layer[initial_extruder] >50)}
-    M106 P3 S255
-    {elsif (bed_temperature[initial_extruder] >45)||(bed_temperature_initial_layer[initial_extruder] >45)}
+    {if (bed_temperature[initial_extruder] >45)||(bed_temperature_initial_layer[initial_extruder] >45)}
     M106 P3 S180
     {endif};Prevent PLA from jamming
 {endif}
 M106 P2 S100 ; turn on big fan ,to cool down toolhead
 
-;CUSTOM CODE, Keep nozzle cool during mech check to prevent oozing
-M104 S150 ; Keep at 150 until ready to print
 
-;CUSTOM CODE, commented out original line
-;M104 S{nozzle_temperature_initial_layer[initial_extruder]} ; set extrude temp earlier, to reduce wait time
+M104 S{nozzle_temperature_initial_layer[initial_extruder]} ; set extrude temp earlier, to reduce wait time
 
 ;===== mech mode fast check============================
 G1 X128 Y128 Z10 F20000
@@ -271,24 +262,25 @@ M975 S1
 G90
 M83
 T1000
-G1 X18.0 Y0.5 Z0.8 F18000;Move to start position
+G1 X18.0 Y1.0 Z0.8 F18000;Move to start position
 M109 S{nozzle_temperature_initial_layer[initial_extruder]}
 G1 Z0.2
 G0 E2 F300
-G0 X129 E15 F{outer_wall_volumetric_speed/(0.3*1.0)     * 60}
-G0 X240 E15
-G0 Y15 E1.500 F{outer_wall_volumetric_speed/(0.3*1.0)/ 4 * 60}
+G0 X240 E15 F{outer_wall_volumetric_speed/(0.3*0.5)     * 60}
+G0 Y11 E0.700 F{outer_wall_volumetric_speed/(0.3*0.5)/ 4 * 60}
 G0 X239.5
-G0 E0.3
-G0 Y1.5 E1.500
-G0 X129 E15 F{outer_wall_volumetric_speed/(0.3*1.0)     * 60}
-G0 X18 E15
+G0 E0.2
+G0 Y1.5 E0.700
+G0 X18 E15 F{outer_wall_volumetric_speed/(0.3*0.5)     * 60}
 M400
 
 ;===== for Textured PEI Plate , lower the nozzle as the nozzle was touching topmost of the texture when homing ==
 ;curr_bed_type={curr_bed_type}
 {if curr_bed_type=="Textured PEI Plate"}
-G29.1 Z{-0.04} ; for Textured PEI Plate
+
+;CUSTOM CODE, used to be Z{-0.04}
+G29.1 Z{-0.07} ; for Textured PEI Plate
+
 {endif}
 ;========turn off light and wait extrude temperature =============
 M1002 gcode_claim_action : 0

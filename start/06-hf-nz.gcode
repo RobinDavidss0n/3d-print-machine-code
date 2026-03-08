@@ -28,6 +28,7 @@ M140 S[bed_temperature_initial_layer_single] ;set bed temp
 M190 S[bed_temperature_initial_layer_single] ;wait for bed temp
 
 
+
 ;=============turn on fans to prevent PLA jamming=================
 {if filament_type[initial_extruder]=="PLA"}
     {if (bed_temperature[initial_extruder] >45)||(bed_temperature_initial_layer[initial_extruder] >45)}
@@ -165,35 +166,30 @@ G2 I0.5 J0 F300
 G2 I0.5 J0 F300
 G2 I0.5 J0 F300
 
+{if printer_notes =~ /.*^(steinwipe_before_abl)$.*/}
+G0 Z2
+M400
+M106 S0
+;___________ run wipe cycle ________________
+{template_custom_gcode}
+{template_custom_gcode}
+G0 X130 Y261
+G0 Z-1.01
+M204 S10000
+M106 S255
 M109 S140 ; wait nozzle temp down to heatbed acceptable
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
 G2 I0.5 J0 F3000
-
-;CUSTOM CODE, added scrubbler nozzle wipe sequence
-;===== Scrubbler nozzle wipe start ABL_5/20/24 ==================
-
-G90 ; ensure absolute mode (should already be in it, but here for safety)
-G1 Z10 F1200 ; Make sure we don't hit the bed during wiping passes
-G1 X128 Y265 F30000; start position, should be very close to where steel plate rub seq. ended
-G91 ; relative mode
-G1 X-45 F30000  ; run snake pattern from top back to front, run at max acceleration.
-G1 Y-0.5 ; increment y slightly , and repeat back/forth while incrementing y.
-G1 X45  
-G1 Y-0.5
-G1 X-45 
-G1 Y-0.5
-G1 X45
-G1 Y-0.5
-G1 X-45 
-G1 Y-0.5
-G1 X45  
-G90 ; restore to absolute mode
-G1 X128 Y265 ; return to start position.
-G1 F3000 ; restore previous acceleration
-
-;===== Scrubbler nozzle wipe end ================================
+M106 P1 S0
+{else}
+M109 S140 ; wait nozzle temp down to heatbed acceptable
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+G2 I0.5 J0 F3000
+{endif}
 
 M221 R; pop softend status
 G1 Z10 F1200
@@ -234,20 +230,14 @@ M975 S1 ; turn on vibration supression
 
 ;=============turn on fans to prevent PLA jamming=================
 {if filament_type[initial_extruder]=="PLA"}
-    {if (bed_temperature[initial_extruder] >50)||(bed_temperature_initial_layer[initial_extruder] >50)}
-    M106 P3 S255
-    {elsif (bed_temperature[initial_extruder] >45)||(bed_temperature_initial_layer[initial_extruder] >45)}
+    {if (bed_temperature[initial_extruder] >45)||(bed_temperature_initial_layer[initial_extruder] >45)}
     M106 P3 S180
     {endif};Prevent PLA from jamming
 {endif}
 M106 P2 S100 ; turn on big fan ,to cool down toolhead
 
 
-;CUSTOM CODE, Keep nozzle cool during mech check to prevent oozing
-M104 S150 ; Keep at 150 until ready to print
-
-;CUSTOM CODE, commented out original line
-;M104 S{nozzle_temperature_initial_layer[initial_extruder]} ; set extrude temp earlier, to reduce wait time
+M104 S{nozzle_temperature_initial_layer[initial_extruder]} ; set extrude temp earlier, to reduce wait time
 
 ;===== mech mode fast check============================
 G1 X128 Y128 Z10 F20000
@@ -287,7 +277,10 @@ M400
 ;===== for Textured PEI Plate , lower the nozzle as the nozzle was touching topmost of the texture when homing ==
 ;curr_bed_type={curr_bed_type}
 {if curr_bed_type=="Textured PEI Plate"}
-G29.1 Z{-0.04} ; for Textured PEI Plate
+
+;CUSTOM CODE, used to be Z{-0.04}
+G29.1 Z{-0.09} ; for Textured PEI Plate
+
 {endif}
 ;========turn off light and wait extrude temperature =============
 M1002 gcode_claim_action : 0
